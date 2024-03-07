@@ -43,8 +43,8 @@ public class WebSocketService {
 	 * @since 17
 	 */
 	public WebSocketService(SimpMessagingTemplate simpMessagingTemplate,
-			@Value("${ocr-d.web-socket.topic.prefix}") String topic,
-			@Value("${ocr-d.web-socket.topic.end-point}") String endpoint) {
+			@Value("${ocr-d.message.topic.prefix}") String topic,
+			@Value("${ocr-d.message.topic.end-point}") String endpoint) {
 		super();
 
 		this.simpMessagingTemplate = simpMessagingTemplate;
