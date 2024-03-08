@@ -27,13 +27,13 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 	/**
 	 * The prefix to filter destinations targeting the message broker.
 	 */
-	@Value("${ocr-d.message.topic.prefix}")
+	@Value("${ocr4all.message.topic.prefix}")
 	private String topic;
 
 	/**
 	 * The end point.
 	 */
-	@Value("${ocr-d.message.topic.end-point}")
+	@Value("${ocr4all.message.topic.end-point}")
 	private String endpoint;
 
 	/*

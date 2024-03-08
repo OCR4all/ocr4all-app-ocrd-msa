@@ -1,3 +1,40 @@
-ocr-d.message.topic:
-  prefix: /topic
-  end-point: /event
+server.port: 8080
+
+spring.profiles.active:
+  - development
+
+ocr4all:
+  message.topic:
+    prefix: /topic
+    end-point: /event
+  thread.pool.size: 
+    core: 12
+    time-consuming: 6
+
+---
+spring:
+    config.activate.on-profile: docker
+
+logging:
+  file:
+    path: /var/log/ocr4all
+    name: ocr4all.log
+  level:
+    root: INFO
+
+---
+spring:
+    config.activate.on-profile: development
+
+server:
+  port: 9091
+  error.include-stacktrace: always
+
+logging:
+  file:
+    path:
+    name:
+  level:
+    "[org.springframework.security]": INFO
+    "[de.uniwuerzburg.zpd.ocr4all.application.ocrd.msa]": DEBUG
+
