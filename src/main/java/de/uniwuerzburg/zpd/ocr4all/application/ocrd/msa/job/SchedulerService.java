@@ -7,15 +7,18 @@
  */
 package de.uniwuerzburg.zpd.ocr4all.application.ocrd.msa.job;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.Hashtable;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.annotation.ApplicationScope;
+
+import de.uniwuerzburg.zpd.ocr4all.application.communication.message.Message;
+import de.uniwuerzburg.zpd.ocr4all.application.communication.message.spi.EventSPI;
+import de.uniwuerzburg.zpd.ocr4all.application.ocrd.msa.message.WebSocketService;
 
 /**
  * Defines scheduler services.
@@ -89,17 +92,7 @@ public class SchedulerService {
 	/**
 	 * The jobs. The key is the job id.
 	 */
-	private final Hashtable<Integer, Job> jobs = new Hashtable<>();
-
-	/**
-	 * The running jobs. The key is the job id.
-	 */
-	private final Hashtable<Integer, Job> running = new Hashtable<>();
-
-	/**
-	 * The scheduled jobs.
-	 */
-	private final List<Job> scheduled = new ArrayList<>();
+	private final Set<Job> jobs = new HashSet<>();
 
 	/**
 	 * The start time.
@@ -117,13 +110,22 @@ public class SchedulerService {
 	private final ThreadPoolTaskExecutor threadPoolTimeConsuming;
 
 	/**
+	 * The WebSocket service.
+	 */
+	private final WebSocketService webSocketService;
+
+	/**
 	 * Creates a scheduler service.
 	 * 
-	 * @param configurationService The configuration service.
-	 * @since 1.8
+	 * @param threadPoolCoreSize          The size of the thread pool for core jobs.
+	 * @param threadPoolTimeConsumingSize The size of the thread pool for
+	 *                                    time-consuming jobs.
+	 * @param webSocketService            The WebSocket service.
+	 * @since 17
 	 */
 	public SchedulerService(@Value("${ocr4all.thread.pool.size.core}") int threadPoolCoreSize,
-			@Value("${ocr4all.thread.pool.size,time-consuming}") int threadPoolTimeConsumingSize) {
+			@Value("${ocr4all.thread.pool.size,time-consuming}") int threadPoolTimeConsumingSize,
+			WebSocketService webSocketService) {
 		super();
 
 		/*
@@ -131,6 +133,8 @@ public class SchedulerService {
 		 */
 		threadPoolCore = createThreadPool(ThreadPool.core.getLabel(), threadPoolCoreSize);
 		threadPoolTimeConsuming = createThreadPool(ThreadPool.timeConsuming.getLabel(), threadPoolTimeConsumingSize);
+
+		this.webSocketService = webSocketService;
 	}
 
 	/**
@@ -168,74 +172,47 @@ public class SchedulerService {
 	}
 
 	/**
-	 * Returns the job.
-	 * 
-	 * @param id The job id.
-	 * @return The job.
-	 * @throws IllegalArgumentException Throws if the job is unknown.
-	 * @since 1.8
-	 */
-	public Job getJob(int id) throws IllegalArgumentException {
-		Job job = jobs.get(id);
-
-		if (job == null)
-			throw new IllegalArgumentException("SchedulerService: unknown job id " + id + ".");
-
-		return job;
-	}
-
-	/**
-	 * Starts the job.
+	 * Starts the job if it is not under scheduler control.
 	 * 
 	 * @param job The job to start.
 	 * @since 1.8
 	 */
-	private void start(Job job) {
-		job.start(ThreadPool.timeConsuming.equals(job.getThreadPool()) ? threadPoolTimeConsuming : threadPoolCore,
-				instance -> schedule());
-
-		if (job.isStateRunning())
-			running.put(job.getId(), job);
-	}
-
-	/**
-	 * Schedule the jobs.
-	 * 
-	 * @since 1.8
-	 */
-	private synchronized void schedule() {
-		// expunge done jobs from running table
-		for (Job job : new ArrayList<>(running.values()))
-			if (job.isDone())
-				running.remove(job.getId());
-
-		// start scheduled jobs
-		synchronized (scheduled) {
-			for (Job job : scheduled)
-				if (job.isStateScheduled())
-					start(job);
-
-			scheduled.clear();
-		}
-	}
-
-	/**
-	 * Schedules the job if it is not under scheduler control.
-	 * 
-	 * @param job The job to schedule.
-	 * @return The job state.
-	 * @since 1.8
-	 */
-	public synchronized Job.State schedule(Job job) {
+	public void start(Job job) {
 		if (job != null && !job.isSchedulerControl() && job.schedule(++id)) {
-			jobs.put(job.getId(), job);
+			job.start(ThreadPool.timeConsuming.equals(job.getThreadPool()) ? threadPoolTimeConsuming : threadPoolCore,
+					entity -> sendDoneEvent(entity));
 
-			scheduled.add(job);
+			synchronized (job) {
+				jobs.add(job);
+			}
 
-			schedule();
 		}
+	}
 
-		return job == null ? null : job.getState();
+	/**
+	 * Broadcasts an event to the registered clients on the WebSocket informing that
+	 * the job finish.
+	 * 
+	 * @param job The job.
+	 * @since 17
+	 */
+	private void sendDoneEvent(Job job) {
+		if (job.isDone()) {
+			EventSPI.Type type;
+			switch (job.getState()) {
+			case canceled:
+				type = EventSPI.Type.canceled;
+				break;
+			case completed:
+				type = EventSPI.Type.completed;
+				break;
+			default:
+				type = EventSPI.Type.interrupted;
+				break;
+			}
+
+			webSocketService.broadcast(new EventSPI(type, job.getKey(), new Message(job.getDescription())));
+		}
 	}
 
 	/**
@@ -245,10 +222,9 @@ public class SchedulerService {
 	 * @throws IllegalArgumentException Throws if the job is unknown.
 	 * @since 1.8
 	 */
-	public void cancelJob(int id) throws IllegalArgumentException {
-		getJob(id).cancel();
-
-		schedule();
+	public void cancel(Job job) throws IllegalArgumentException {
+		if (job != null)
+			job.cancel();
 	}
 
 	/**
@@ -256,28 +232,24 @@ public class SchedulerService {
 	 * 
 	 * @since 1.8
 	 */
-	public synchronized void expungeDone() {
-		List<Integer> expunges = new ArrayList<>();
-		for (int id : jobs.keySet())
-			if (jobs.get(id).isDone())
-				expunges.add(id);
-
-		for (int id : expunges)
-			jobs.remove(id);
+	public void expunge() {
+		synchronized (jobs) {
+			jobs.removeIf(job -> job.isDone());
+		}
 	}
 
 	/**
-	 * Expunges the done job.
+	 * Expunges the given job is it is done.
 	 * 
-	 * @param id The job id.
+	 * @param id The job.
 	 * @return True if the job could be expunged.
 	 * @since 1.8
 	 */
-	public synchronized boolean expungeDone(int id) {
-		Job job = jobs.get(id);
-
+	public synchronized boolean expunge(Job job) {
 		if (job != null && job.isDone()) {
-			jobs.remove(id);
+			synchronized (jobs) {
+				jobs.remove(job);
+			}
 
 			return true;
 		} else

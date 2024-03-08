@@ -85,21 +85,33 @@ public abstract class Job {
 	private Date end = null;
 
 	/**
+	 * The thread pool.
+	 */
+	private final SchedulerService.ThreadPool threadPool;
+
+	/**
+	 * The key.
+	 */
+	private final String key;
+
+	/**
+	 * The description.
+	 */
+	private final String description;
+
+	/**
 	 * Creates a job
 	 *
 	 * @since 1.8
 	 */
-	Job() throws IllegalArgumentException {
+	Job(SchedulerService.ThreadPool threadPool, String key, String description) {
 		super();
-	}
 
-	/**
-	 * Returns the short description.
-	 *
-	 * @return The short description.
-	 * @since 1.8
-	 */
-	public abstract String getShortDescription();
+		this.threadPool = threadPool;
+
+		this.key = key;
+		this.description = description;
+	}
 
 	/**
 	 * Returns the thread pool.
@@ -107,7 +119,29 @@ public abstract class Job {
 	 * @return The thread pool.
 	 * @since 1.8
 	 */
-	public abstract SchedulerService.ThreadPool getThreadPool();
+	public SchedulerService.ThreadPool getThreadPool() {
+		return threadPool;
+	}
+
+	/**
+	 * Returns the key.
+	 *
+	 * @return The key.
+	 * @since 1.8
+	 */
+	public String getKey() {
+		return key;
+	}
+
+	/**
+	 * Returns the description.
+	 *
+	 * @return The description.
+	 * @since 1.8
+	 */
+	public String getDescription() {
+		return description;
+	}
 
 	/**
 	 * Executes the job if it is in scheduled state.
