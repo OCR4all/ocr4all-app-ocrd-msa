@@ -178,25 +178,24 @@ public class SchedulerService {
 	 * @since 1.8
 	 */
 	public void start(Job job) {
-		if (job != null && !job.isSchedulerControl() && job.schedule(++id)) {
-			job.start(ThreadPool.timeConsuming.equals(job.getThreadPool()) ? threadPoolTimeConsuming : threadPoolCore,
-					entity -> sendDoneEvent(entity));
+		if (job != null && !job.isSchedulerControl()) {
+			job.schedule(
+					ThreadPool.timeConsuming.equals(job.getThreadPool()) ? threadPoolTimeConsuming : threadPoolCore,
+					++id, entity -> sendEvent(entity));
 
 			synchronized (job) {
 				jobs.add(job);
 			}
-
 		}
 	}
 
 	/**
-	 * Broadcasts an event to the registered clients on the WebSocket informing that
-	 * the job finish.
+	 * Broadcasts an event to the registered clients on the WebSocket.
 	 * 
 	 * @param job The job.
 	 * @since 17
 	 */
-	private void sendDoneEvent(Job job) {
+	private void sendEvent(Job job) {
 		if (job.isDone()) {
 			EventSPI.Type type;
 			switch (job.getState()) {
@@ -211,7 +210,7 @@ public class SchedulerService {
 				break;
 			}
 
-			webSocketService.broadcast(new EventSPI(type, job.getKey(), new Message(job.getDescription())));
+			webSocketService.broadcast(new EventSPI(type, job.getKey(), new Message(job.getMessage())));
 		}
 	}
 

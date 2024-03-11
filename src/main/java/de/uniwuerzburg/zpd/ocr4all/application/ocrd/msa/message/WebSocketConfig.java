@@ -25,6 +25,11 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 	/**
+	 * The logger.
+	 */
+	protected static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(WebSocketConfig.class);
+
+	/**
 	 * The prefix to filter destinations targeting the message broker.
 	 */
 	@Value("${ocr4all.message.topic.prefix}")
@@ -47,6 +52,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 	@Override
 	public void configureMessageBroker(MessageBrokerRegistry config) {
 		config.enableSimpleBroker(topic);
+
+		logger.info("WebSocket: enabled topic '" + topic + "'.");
 	}
 
 	/*
@@ -60,5 +67,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 	public void registerStompEndpoints(StompEndpointRegistry registry) {
 		registry.addEndpoint(endpoint).setAllowedOriginPatterns("*");
 		registry.addEndpoint(endpoint).setAllowedOriginPatterns("*").withSockJS();
+
+		logger.info("WebSocket: registered end point '" + endpoint + "'.");
 	}
 }

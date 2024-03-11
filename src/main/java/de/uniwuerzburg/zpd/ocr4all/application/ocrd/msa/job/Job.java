@@ -144,6 +144,14 @@ public abstract class Job {
 	}
 
 	/**
+	 * Returns the message.
+	 * 
+	 * @return The message.
+	 * @since 17
+	 */
+	protected abstract String getMessage();
+
+	/**
 	 * Executes the job if it is in scheduled state.
 	 *
 	 * @return The end state of the execution, this means, canceled, completed or
@@ -178,24 +186,6 @@ public abstract class Job {
 	 */
 	public boolean isSchedulerControl() {
 		return !State.initialized.equals(state);
-	}
-
-	/**
-	 * Schedules the job if it is not under the control of the scheduler and the
-	 * given id is greater than 0.
-	 *
-	 * @param id The job id.
-	 * @return True if the job was scheduled.
-	 * @since 1.8
-	 */
-	boolean schedule(int id) {
-		if (!isSchedulerControl() && id > 0) {
-			state = State.scheduled;
-			this.id = id;
-
-			return true;
-		} else
-			return false;
 	}
 
 	/**
@@ -286,47 +276,59 @@ public abstract class Job {
 	@FunctionalInterface
 	public interface Callback {
 		/**
-		 * Callback method at the end of the job.
+		 * Callback method to send an event.
 		 *
-		 * @param job The job that has been done.
+		 * @param job The job sending the event.
 		 * @since 1.8
 		 */
-		public void done(Job job);
+		public void event(Job job);
 	}
 
 	/**
-	 * Starts the job in a new thread if it is in scheduled state.
+	 * Schedules the job if it is not under the control of the scheduler and the
+	 * given id is greater than 0.
 	 *
-	 * @param taskExecutor The task executor.
+	 * @param taskExecutor The task executor. The thread pool to execute the job.
+	 * @param id           The job id.
 	 * @param callback     The callback method when the job finishes. If null, no
 	 *                     callback is performed.
-	 * @return The job state.
 	 * @since 1.8
 	 */
-	synchronized State start(ThreadPoolTaskExecutor taskExecutor, Callback callback) {
-		if (isStateScheduled()) {
-			state = State.running;
-			start = new Date();
+	synchronized void schedule(ThreadPoolTaskExecutor taskExecutor, int id, Callback callback) {
+		if (!isSchedulerControl() && id > 0) {
+			state = State.scheduled;
+			this.id = id;
+
+			if (callback != null)
+				callback.event(Job.this);
 
 			taskExecutor.execute(() -> {
-				logger.info("Start execution of job ID " + getId() + ".");
+				if (isStateScheduled()) {
+					logger.info("Start execution of job ID " + getId() + ".");
 
-				State executionState = execute();
+					state = State.running;
+					start = new Date();
 
-				if (!State.canceled.equals(state)) {
-					state = State.completed.equals(executionState) ? State.completed : State.interrupted;
+					if (callback != null)
+						callback.event(Job.this);
 
-					end = new Date();
+					State executionState = execute();
+
+					if (!State.canceled.equals(state)) {
+						state = State.completed.equals(executionState) ? State.completed : State.interrupted;
+
+						end = new Date();
+					}
+					
+					logger.info("End execution of the job ID " + getId() + ".");
 				}
 
 				if (callback != null)
-					callback.done(Job.this);
+					callback.event(Job.this);
 
-				logger.info("End execution of the job ID " + getId() + ".");
 			});
 		}
 
-		return state;
 	}
 
 	/**
