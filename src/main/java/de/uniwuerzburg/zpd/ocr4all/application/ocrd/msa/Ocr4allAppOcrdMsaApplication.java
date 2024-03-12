@@ -9,6 +9,7 @@ package de.uniwuerzburg.zpd.ocr4all.application.ocrd.msa;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.ComponentScan;
 
 /**
  * Triggers auto-configuration and component scanning and enables the ocr-d
@@ -19,6 +20,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @since 17
  */
 @SpringBootApplication
+@ComponentScan("de.uniwuerzburg.zpd.ocr4all.application")
 public class Ocr4allAppOcrdMsaApplication {
 
 	/**
