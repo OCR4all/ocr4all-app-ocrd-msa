@@ -8,7 +8,7 @@ ocr4all:
     prefix: /topic
     end-point: /event
   thread.pool.size: 
-    core: 12
+    standard: 12
     time-consuming: 6
 
 ---
