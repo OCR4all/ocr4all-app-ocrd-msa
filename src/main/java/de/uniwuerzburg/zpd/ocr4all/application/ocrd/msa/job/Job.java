@@ -285,11 +285,10 @@ public abstract class Job {
 	}
 
 	/**
-	 * Schedules the job if it is not under the control of the scheduler and the
-	 * given id is greater than 0.
+	 * Schedules the job if it is not under the control of the scheduler.
 	 *
 	 * @param taskExecutor The task executor. The thread pool to execute the job.
-	 * @param id           The job id.
+	 * @param id           The job id. This is a positive number.
 	 * @param callback     The callback method when the job finishes. If null, no
 	 *                     callback is performed.
 	 * @since 1.8
@@ -299,15 +298,17 @@ public abstract class Job {
 			state = State.scheduled;
 			this.id = id;
 
+			logger.info("scheduled job ID " + getId() + ".");
+
 			if (callback != null)
 				callback.event(Job.this);
 
 			taskExecutor.execute(() -> {
 				if (isStateScheduled()) {
-					logger.info("Start execution of job ID " + getId() + ".");
-
 					state = State.running;
 					start = new Date();
+
+					logger.info("start execution of job ID " + getId() + ".");
 
 					if (callback != null)
 						callback.event(Job.this);
@@ -319,8 +320,8 @@ public abstract class Job {
 
 						end = new Date();
 					}
-					
-					logger.info("End execution of the job ID " + getId() + ".");
+
+					logger.info("end execution of the job ID " + getId() + " with state '" + state.name() + "'.");
 				}
 
 				if (callback != null)
@@ -328,7 +329,6 @@ public abstract class Job {
 
 			});
 		}
-
 	}
 
 	/**
@@ -345,6 +345,8 @@ public abstract class Job {
 			state = State.canceled;
 			end = new Date();
 
+			logger.info("canceled job ID " + getId() + ".");
+			
 			if (isRunning)
 				new Thread(new Runnable() {
 					/*

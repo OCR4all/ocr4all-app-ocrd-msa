@@ -190,28 +190,37 @@ public class SchedulerService {
 	}
 
 	/**
-	 * Broadcasts an event to the registered clients on the WebSocket.
+	 * Broadcasts an event to the registered clients on the WebSocket if the job
+	 * state is not 'initialized'.
 	 * 
-	 * @param job The job.
+	 * @param job The job. It is mandatory and cannot be null.
 	 * @since 17
 	 */
 	private void sendEvent(Job job) {
-		if (job.isDone()) {
-			EventSPI.Type type;
-			switch (job.getState()) {
-			case canceled:
-				type = EventSPI.Type.canceled;
-				break;
-			case completed:
-				type = EventSPI.Type.completed;
-				break;
-			default:
-				type = EventSPI.Type.interrupted;
-				break;
-			}
-
-			webSocketService.broadcast(new EventSPI(type, job.getKey(), new Message(job.getMessage())));
+		EventSPI.Type type;
+		switch (job.getState()) {
+		case scheduled:
+			type = EventSPI.Type.scheduled;
+			break;
+		case running:
+			type = EventSPI.Type.running;
+			break;
+		case canceled:
+			type = EventSPI.Type.canceled;
+			break;
+		case completed:
+			type = EventSPI.Type.completed;
+			break;
+		case interrupted:
+			type = EventSPI.Type.interrupted;
+			break;
+		default:
+			type = null;
+			break;
 		}
+
+		if (type != null)
+			webSocketService.broadcast(new EventSPI(type, job.getKey(), new Message(job.getMessage())));
 	}
 
 	/**
