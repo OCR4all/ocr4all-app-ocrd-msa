@@ -2,14 +2,15 @@ server.port: 8080
 
 spring.profiles.active:
   - development
+  - msa-api
 
 ocr4all:
   message.topic:
     prefix: /topic
     end-point: /event
   thread.pool.size: 
-    standard: 12
-    time-consuming: 6
+    standard: 6
+    time-consuming: 3
 
 ---
 spring:
@@ -35,6 +36,5 @@ logging:
     path:
     name:
   level:
-    "[org.springframework.security]": INFO
     "[de.uniwuerzburg.zpd.ocr4all.application.ocrd.msa]": DEBUG
 
