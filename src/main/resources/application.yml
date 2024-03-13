@@ -11,6 +11,8 @@ ocr4all:
   thread.pool.size: 
     standard: 6
     time-consuming: 3
+  ocrd.parameter:
+    description.json: -J
 
 ---
 spring:
