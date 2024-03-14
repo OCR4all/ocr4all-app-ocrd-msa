@@ -44,7 +44,12 @@ public class CoreApiController {
 	 * The processor path variable.
 	 */
 	public static final String processorPathVariable = "/{processor}";
-	
+
+	/**
+	 * The execute request mapping.
+	 */
+	public static final String executeRequestMapping = "/execute";
+
 	/**
 	 * The logger.
 	 */
