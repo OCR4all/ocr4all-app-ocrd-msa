@@ -7,8 +7,6 @@
  */
 package de.uniwuerzburg.zpd.ocr4all.application.ocrd.msa.api.worker;
 
-import java.io.Serializable;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -61,11 +59,12 @@ public class ProcessorController extends CoreApiController {
 	 */
 	@GetMapping(descriptionRequestMapping + jsonRequestMapping + processorPathVariable)
 	public ResponseEntity<DescriptionResponse> jsonDescription(@PathVariable String processor) {
-		if (processor == null || processor.isBlank())
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-		
 		try {
 			return ResponseEntity.ok().body(new DescriptionResponse(service.getDescriptionJson(processor.trim())));
+		} catch (IllegalArgumentException ex) {
+			log(ex);
+
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
 		} catch (Exception ex) {
 			log(ex);
 

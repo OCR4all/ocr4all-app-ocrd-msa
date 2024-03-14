@@ -11,8 +11,10 @@ ocr4all:
   thread.pool.size: 
     standard: 6
     time-consuming: 3
-  ocrd.parameter:
-    description.json: -J
+  projects.folder: /home/ocr4all/projects
+  ocrd:
+    parameter.description.json: -J
+    processors.time-consuming: ocrd-calamari-recognize,ocrd-tesserocr-recognize
 
 ---
 spring:
