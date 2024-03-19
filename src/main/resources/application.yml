@@ -7,7 +7,7 @@ spring.profiles.active:
 ocr4all:
   message.topic:
     prefix: /topic
-    end-point: /event
+    end-point: /spi-event
   thread.pool.size: 
     standard: 6
     time-consuming: 3
