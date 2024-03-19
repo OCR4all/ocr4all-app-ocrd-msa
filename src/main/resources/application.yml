@@ -1,4 +1,4 @@
-server.port: 8080
+server.port: 9091
 
 spring.profiles.active:
   - development
@@ -20,6 +20,8 @@ ocr4all:
 spring:
     config.activate.on-profile: docker
 
+server.port: 8080
+
 logging:
   file:
     path: /var/log/ocr4all
@@ -32,7 +34,6 @@ spring:
     config.activate.on-profile: development
 
 server:
-  port: 9091
   error.include-stacktrace: always
 
 logging:
