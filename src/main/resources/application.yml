@@ -5,9 +5,11 @@ spring.profiles.active:
   - msa-api
 
 ocr4all:
-  message.topic:
-    prefix: /topic
-    end-point: /spi-event
+  message:
+    end-point: /event
+    topic:
+      prefix: /topic
+      destination: /spi
   thread.pool.size: 
     standard: 6
     time-consuming: 3
