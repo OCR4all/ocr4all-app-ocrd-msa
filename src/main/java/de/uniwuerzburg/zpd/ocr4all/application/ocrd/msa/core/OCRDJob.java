@@ -39,9 +39,10 @@ public class OCRDJob extends Job {
 	/**
 	 * Creates an OCR-D job.
 	 *
-	 * @param threadPool  The thread pool.
-	 * @param key         The key.
-	 * @param description The description.
+	 * @param threadPool The thread pool.
+	 * @param key        The key.
+	 * @param process    The process.
+	 * @param arguments  The arguments.
 	 * @since 17
 	 */
 	public OCRDJob(SchedulerService.ThreadPool threadPool, String key, SystemProcess process, List<String> arguments) {
@@ -80,8 +81,8 @@ public class OCRDJob extends Job {
 
 			return state;
 		} catch (Exception e) {
-			State state =  State.interrupted;
-			
+			State state = State.interrupted;
+
 			message = state.name() + " - " + e.getMessage();
 
 			return state;

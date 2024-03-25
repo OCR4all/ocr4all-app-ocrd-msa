@@ -88,7 +88,7 @@ public class ProcessorController extends CoreApiController {
 	public ResponseEntity<JobResponse> execute(@RequestBody @Valid ProcessRequest request) {
 		try {
 			return ResponseEntity.ok().body(new JobResponse(service.start(request.getKey(), request.getFolder(),
-					request.getProcessor(), request.getArguments())));
+					request.getProcessor(), request.getInput(), request.getOutput(), request.getArguments())));
 		} catch (IllegalArgumentException ex) {
 			log(ex);
 

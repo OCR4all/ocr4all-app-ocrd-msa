@@ -15,7 +15,11 @@ ocr4all:
     time-consuming: 3
   projects.folder: /home/ocr4all/projects
   ocrd:
-    parameter.description.json: -J
+    parameter:
+      description.json: -J
+      folder:
+        input: -I
+        output: -O
     processors.time-consuming: ocrd-calamari-recognize,ocrd-tesserocr-recognize
 
 ---

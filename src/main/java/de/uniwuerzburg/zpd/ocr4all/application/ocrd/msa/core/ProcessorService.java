@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -41,6 +42,16 @@ public class ProcessorService {
 	private final String jsonDescriptionParameter;
 
 	/**
+	 * The input folder parameter.
+	 */
+	private final String inputParameter;
+
+	/**
+	 * The output folder parameter.
+	 */
+	private final String outputParameter;
+
+	/**
 	 * The processors to be run on the time-consuming thread pool.
 	 */
 	private final Set<String> timeConsuming = new HashSet<>();;
@@ -61,13 +72,18 @@ public class ProcessorService {
 	 * @since 17
 	 */
 	public ProcessorService(@Value("${ocr4all.projects.folder}") String projectsFolder,
-			@Value("${ocr4all.ocrd.parameter.description.json}") String jsonDescriptionParameter,
+			@Value("${ocr4all.ocrd.parameter.description.json}") String jsonDescriptionParameter, 
+			@Value("${ocr4all.ocrd.parameter.folder.input}") String inputParameter,
+			@Value("${ocr4all.ocrd.parameter.folder.output}") String outputParameter,
 			@Value("#{'${ocr4all.ocrd.processors.time-consuming}'.split(',')}") List<String> timeConsuming,
 			SchedulerService schedulerService) {
 		super();
 
 		this.projectsFolder = Paths.get(projectsFolder).normalize();
+
 		this.jsonDescriptionParameter = jsonDescriptionParameter;
+		this.inputParameter = inputParameter;
+		this.outputParameter = outputParameter;
 
 		this.schedulerService = schedulerService;
 
@@ -105,26 +121,36 @@ public class ProcessorService {
 	 * @param folder    The working directory of the job. It is relative to the
 	 *                  project folder.
 	 * @param processor The OCR-D processor.
+	 * @param input     The OCR-D input folder.
+	 * @param output    The OCR-D output folder.
 	 * @param arguments The OCR-D processor arguments.
 	 * @return The scheduled job.
 	 * @throws IllegalArgumentException Throws on folder troubles.
 	 * @since 17
 	 */
-	public OCRDJob start(String key, String folder, String processor, List<String> arguments)
+	public OCRDJob start(String key, String folder, String processor, String input, String output, List<String> arguments)
 			throws IllegalArgumentException {
 		if (folder == null || folder.isBlank())
 			throw new IllegalArgumentException("the folder parameter is not defined");
+
+		if (input == null || input.isBlank())
+			throw new IllegalArgumentException("the input folder parameter is not defined");
+
+		if (output == null || output.isBlank())
+			throw new IllegalArgumentException("the output folder parameter is not defined");
 
 		Path path = Paths.get(projectsFolder.toString(), folder.trim()).normalize();
 
 		if (!path.startsWith(projectsFolder) || !Files.isDirectory(path))
 			throw new IllegalArgumentException("the folder is not a valid directory");
+		
+		arguments.addAll(0, Arrays.asList(inputParameter, input, outputParameter, output));
 
 		OCRDJob job = new OCRDJob(timeConsuming.contains(processor.trim()) ? SchedulerService.ThreadPool.timeConsuming
 				: SchedulerService.ThreadPool.standard, key, new SystemProcess(path, processor), arguments);
 		schedulerService.start(job);
 
 		return job;
-	}
+	}	
 
 }
