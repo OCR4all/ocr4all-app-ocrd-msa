@@ -12,6 +12,7 @@ import java.util.List;
 import de.uniwuerzburg.zpd.ocr4all.application.communication.msa.job.State;
 import de.uniwuerzburg.zpd.ocr4all.application.communication.msa.job.ThreadPool;
 import de.uniwuerzburg.zpd.ocr4all.application.msa.job.Job;
+import de.uniwuerzburg.zpd.ocr4all.application.msa.job.SystemJob;
 import de.uniwuerzburg.zpd.ocr4all.application.spi.util.SystemProcess;
 
 /**
@@ -21,7 +22,7 @@ import de.uniwuerzburg.zpd.ocr4all.application.spi.util.SystemProcess;
  * @version 1.0
  * @since 17
  */
-public class OCRDJob extends Job {
+public class OCRDJob extends Job implements SystemJob {
 	/**
 	 * The system process.
 	 */
@@ -100,33 +101,34 @@ public class OCRDJob extends Job {
 		process.cancel();
 	}
 
-	/**
-	 * Returns the system process standard output.
-	 *
-	 * @return The system process standard output.
-	 * @since 1.8
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * de.uniwuerzburg.zpd.ocr4all.application.msa.job.SystemJob#getStandardOutput()
 	 */
+	@Override
 	public String getStandardOutput() {
 		return process.getStandardOutput();
 	}
 
-	/**
-	 * Returns the system process standard error.
-	 *
-	 * @return The system process standard error.
-	 * @since 1.8
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * de.uniwuerzburg.zpd.ocr4all.application.msa.job.SystemJob#getStandardError()
 	 */
+	@Override
 	public String getStandardError() {
 		return process.getStandardError();
 	}
 
-	/**
-	 * Returns the exit value. By convention, the value 0 indicates normal
-	 * termination. -1 if the exit value is not set.
-	 *
-	 * @return The exit value.
-	 * @since 1.8
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see de.uniwuerzburg.zpd.ocr4all.application.msa.job.SystemJob#getExitValue()
 	 */
+	@Override
 	public int getExitValue() {
 		return process.getExitValue();
 	}

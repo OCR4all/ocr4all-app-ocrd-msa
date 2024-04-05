@@ -41,14 +41,24 @@ public class CoreApiController {
 	public static final String jsonRequestMapping = "/json";
 
 	/**
-	 * The processor path variable.
+	 * The job request mapping.
 	 */
-	public static final String processorPathVariable = "/{processor}";
+	public static final String jobRequestMapping = "/job";
 
 	/**
 	 * The execute request mapping.
 	 */
 	public static final String executeRequestMapping = "/execute";
+
+	/**
+	 * The id path variable.
+	 */
+	public static final String idPathVariable = "/{id}";
+
+	/**
+	 * The processor path variable.
+	 */
+	public static final String processorPathVariable = "/{processor}";
 
 	/**
 	 * The logger.

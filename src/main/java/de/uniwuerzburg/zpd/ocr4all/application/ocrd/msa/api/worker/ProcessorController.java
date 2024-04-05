@@ -18,9 +18,12 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import de.uniwuerzburg.zpd.ocr4all.application.communication.msa.api.domain.JobResponse;
+import de.uniwuerzburg.zpd.ocr4all.application.communication.msa.api.domain.SystemJobResponse;
 import de.uniwuerzburg.zpd.ocr4all.application.msa.api.util.ApiUtils;
+import de.uniwuerzburg.zpd.ocr4all.application.msa.job.SchedulerService;
 import de.uniwuerzburg.zpd.ocr4all.application.ocrd.communication.api.DescriptionResponse;
 import de.uniwuerzburg.zpd.ocr4all.application.ocrd.communication.api.ProcessRequest;
+import de.uniwuerzburg.zpd.ocr4all.application.ocrd.msa.core.OCRDJob;
 import de.uniwuerzburg.zpd.ocr4all.application.ocrd.msa.core.ProcessorService;
 import jakarta.validation.Valid;
 
@@ -45,15 +48,22 @@ public class ProcessorController extends CoreApiController {
 	private final ProcessorService service;
 
 	/**
+	 * The scheduler service.
+	 */
+	private final SchedulerService schedulerService;
+
+	/**
 	 * Creates a processor controller for the api.
 	 * 
-	 * @param service The processor service.
+	 * @param service          The processor service.
+	 * @param schedulerService The scheduler service.
 	 * @since 17
 	 */
-	public ProcessorController(ProcessorService service) {
+	public ProcessorController(ProcessorService service, SchedulerService schedulerService) {
 		super(ProcessorController.class);
 
 		this.service = service;
+		this.schedulerService = schedulerService;
 	}
 
 	/**
@@ -100,4 +110,26 @@ public class ProcessorController extends CoreApiController {
 			throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE);
 		}
 	}
+
+	/**
+	 * Returns the system job in the response body.
+	 * 
+	 * @param id The job id.
+	 * @return The system job in the response body.
+	 * @since 1.8
+	 */
+	@GetMapping(jobRequestMapping + idPathVariable)
+	public ResponseEntity<SystemJobResponse> getSystemJob(@PathVariable int id) {
+		try {
+			OCRDJob job = (OCRDJob) schedulerService.getJob(id);
+
+			if (job == null)
+				throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+
+			return ResponseEntity.ok().body(ApiUtils.getSystemJobResponse(job));
+		} catch (Exception e) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+		}
+	}
+
 }
