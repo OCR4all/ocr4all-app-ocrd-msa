@@ -19,6 +19,7 @@ import java.util.Set;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import de.uniwuerzburg.zpd.ocr4all.application.communication.msa.job.ThreadPool;
 import de.uniwuerzburg.zpd.ocr4all.application.msa.job.SchedulerService;
 import de.uniwuerzburg.zpd.ocr4all.application.spi.util.SystemProcess;
 
@@ -146,8 +147,8 @@ public class ProcessorService {
 		
 		arguments.addAll(0, Arrays.asList(inputParameter, input, outputParameter, output));
 
-		OCRDJob job = new OCRDJob(timeConsuming.contains(processor.trim()) ? SchedulerService.ThreadPool.timeConsuming
-				: SchedulerService.ThreadPool.standard, key, new SystemProcess(path, processor), arguments);
+		OCRDJob job = new OCRDJob(timeConsuming.contains(processor.trim()) ? ThreadPool.timeConsuming
+				: ThreadPool.standard, key, new SystemProcess(path, processor), arguments);
 		schedulerService.start(job);
 
 		return job;

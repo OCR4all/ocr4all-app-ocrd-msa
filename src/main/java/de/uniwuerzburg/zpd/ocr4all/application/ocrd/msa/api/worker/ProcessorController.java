@@ -17,7 +17,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import de.uniwuerzburg.zpd.ocr4all.application.msa.api.domain.JobResponse;
+import de.uniwuerzburg.zpd.ocr4all.application.communication.msa.api.domain.JobResponse;
+import de.uniwuerzburg.zpd.ocr4all.application.msa.api.util.ApiUtils;
 import de.uniwuerzburg.zpd.ocr4all.application.ocrd.communication.api.DescriptionResponse;
 import de.uniwuerzburg.zpd.ocr4all.application.ocrd.communication.api.ProcessRequest;
 import de.uniwuerzburg.zpd.ocr4all.application.ocrd.msa.core.ProcessorService;
@@ -87,7 +88,7 @@ public class ProcessorController extends CoreApiController {
 	@PostMapping(executeRequestMapping)
 	public ResponseEntity<JobResponse> execute(@RequestBody @Valid ProcessRequest request) {
 		try {
-			return ResponseEntity.ok().body(new JobResponse(service.start(request.getKey(), request.getFolder(),
+			return ResponseEntity.ok().body(ApiUtils.getJobResponse(service.start(request.getKey(), request.getFolder(),
 					request.getProcessor(), request.getInput(), request.getOutput(), request.getArguments())));
 		} catch (IllegalArgumentException ex) {
 			log(ex);

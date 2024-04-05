@@ -9,8 +9,9 @@ package de.uniwuerzburg.zpd.ocr4all.application.ocrd.msa.core;
 
 import java.util.List;
 
+import de.uniwuerzburg.zpd.ocr4all.application.communication.msa.job.State;
+import de.uniwuerzburg.zpd.ocr4all.application.communication.msa.job.ThreadPool;
 import de.uniwuerzburg.zpd.ocr4all.application.msa.job.Job;
-import de.uniwuerzburg.zpd.ocr4all.application.msa.job.SchedulerService;
 import de.uniwuerzburg.zpd.ocr4all.application.spi.util.SystemProcess;
 
 /**
@@ -45,7 +46,7 @@ public class OCRDJob extends Job {
 	 * @param arguments  The arguments.
 	 * @since 17
 	 */
-	public OCRDJob(SchedulerService.ThreadPool threadPool, String key, SystemProcess process, List<String> arguments) {
+	public OCRDJob(ThreadPool threadPool, String key, SystemProcess process, List<String> arguments) {
 		super(threadPool, key,
 				"Process: '" + process.getCommand() + "'" + (arguments == null ? "" : " with arguments " + arguments));
 
