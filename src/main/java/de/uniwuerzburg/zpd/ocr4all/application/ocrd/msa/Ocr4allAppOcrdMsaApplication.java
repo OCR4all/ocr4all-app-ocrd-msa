@@ -9,7 +9,10 @@ package de.uniwuerzburg.zpd.ocr4all.application.ocrd.msa;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
+
+import de.uniwuerzburg.zpd.ocr4all.application.msa.configuration.ConfigurationService;
 
 /**
  * Triggers auto-configuration and component scanning and enables the ocr-d
@@ -22,6 +25,11 @@ import org.springframework.context.annotation.ComponentScan;
 @SpringBootApplication
 @ComponentScan("de.uniwuerzburg.zpd.ocr4all.application")
 public class Ocr4allAppOcrdMsaApplication {
+	/**
+	 * The logger.
+	 */
+	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory
+			.getLogger(Ocr4allAppOcrdMsaApplication.class);
 
 	/**
 	 * The main method to start the orc-d server.
@@ -30,7 +38,13 @@ public class Ocr4allAppOcrdMsaApplication {
 	 * @since 17
 	 */
 	public static void main(String[] args) {
-		SpringApplication.run(Ocr4allAppOcrdMsaApplication.class, args);
+		ConfigurableApplicationContext context = SpringApplication.run(Ocr4allAppOcrdMsaApplication.class, args);
+
+		ConfigurationService configurationService = context.getBean(ConfigurationService.class);
+
+		logger.info("started ocr4all-app-ocrd-msa: port " + configurationService.getServerPort() + ", active profiles '"
+				+ configurationService.getActiveProfilesCSV() + "'.");
+
 	}
 
 }

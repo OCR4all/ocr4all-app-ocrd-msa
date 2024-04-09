@@ -31,7 +31,7 @@ server.port: 8080
 logging:
   file:
     path: /var/log/ocr4all
-    name: ocr4all.log
+    name: ocrd-msa.log
   level:
     root: INFO
 

@@ -76,7 +76,11 @@ public class ProcessorController extends CoreApiController {
 	@GetMapping(descriptionRequestMapping + jsonRequestMapping + processorPathVariable)
 	public ResponseEntity<DescriptionResponse> jsonDescription(@PathVariable String processor) {
 		try {
-			return ResponseEntity.ok().body(new DescriptionResponse(service.getDescriptionJson(processor.trim())));
+			processor = processor.trim();
+
+			logger.debug(processor + ": request json description.");
+
+			return ResponseEntity.ok().body(new DescriptionResponse(service.getDescriptionJson(processor)));
 		} catch (IllegalArgumentException ex) {
 			log(ex);
 
@@ -98,8 +102,16 @@ public class ProcessorController extends CoreApiController {
 	@PostMapping(executeRequestMapping)
 	public ResponseEntity<JobResponse> execute(@RequestBody @Valid ProcessRequest request) {
 		try {
-			return ResponseEntity.ok().body(ApiUtils.getJobResponse(service.start(request.getKey(), request.getFolder(),
-					request.getProcessor(), request.getInput(), request.getOutput(), request.getArguments())));
+			logger.debug(request.getProcessor() + ": execute process - key " + request.getKey() + ", home '"
+					+ request.getFolder() + "', input '" + request.getInput() + "', output '" + request.getOutput()
+					+ "', arguments '" + request.getArguments() + "'.");
+
+			final OCRDJob job = service.start(request.getKey(), request.getFolder(), request.getProcessor(),
+					request.getInput(), request.getOutput(), request.getArguments());
+
+			logger.debug(request.getProcessor() + ": running job " + job.getId() + ", key " + job.getKey() + ".");
+
+			return ResponseEntity.ok().body(ApiUtils.getJobResponse(job));
 		} catch (IllegalArgumentException ex) {
 			log(ex);
 
@@ -125,6 +137,9 @@ public class ProcessorController extends CoreApiController {
 
 			if (job == null)
 				throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+
+			logger.debug(
+					"system job " + job.getId() + ": state " + job.getState().name() + ", key " + job.getKey() + ".");
 
 			return ResponseEntity.ok().body(ApiUtils.getSystemJobResponse(job));
 		} catch (Exception e) {
