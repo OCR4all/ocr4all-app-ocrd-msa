@@ -16,8 +16,9 @@ WORKDIR application
 #
 RUN apt-get -y update
 
-# java 17
-RUN apt-get install -y openjdk-17-jdk openjdk-17-jre
+# java version
+ARG JAVA_VERSION
+RUN apt-get install -y openjdk-${JAVA_VERSION}-jdk openjdk-${JAVA_VERSION}-jre
 
 #
 # install application
