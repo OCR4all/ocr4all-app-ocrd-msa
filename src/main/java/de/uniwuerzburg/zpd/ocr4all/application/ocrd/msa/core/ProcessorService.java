@@ -66,6 +66,7 @@ public class ProcessorService {
 	/**
 	 * Creates a processor service.
 	 * 
+	 * @param projectsFolder           The ocr4all projects folder.
 	 * @param jsonDescriptionParameter The json description parameter.
 	 * @param inputParameter           The input folder parameter.
 	 * @param outputParameter          The output folder parameter.
@@ -75,14 +76,15 @@ public class ProcessorService {
 	 * @param schedulerService         The scheduler service.
 	 * @since 17
 	 */
-	public ProcessorService(@Value("${ocr4all.ocrd.parameter.description.json}") String jsonDescriptionParameter,
+	public ProcessorService(@Value("${ocr4all.projects.folder}") String projectsFolder,
+			@Value("${ocr4all.ocrd.parameter.description.json}") String jsonDescriptionParameter,
 			@Value("${ocr4all.ocrd.parameter.folder.input}") String inputParameter,
 			@Value("${ocr4all.ocrd.parameter.folder.output}") String outputParameter,
 			@Value("#{'${ocr4all.ocrd.processors.time-consuming}'.split(',')}") List<String> timeConsuming,
 			ConfigurationService configurationService, SchedulerService schedulerService) {
 		super();
 
-		this.projectsFolder = configurationService.getProjectsFolder();
+		this.projectsFolder = Paths.get(projectsFolder).normalize();
 
 		this.jsonDescriptionParameter = jsonDescriptionParameter;
 		this.inputParameter = inputParameter;

@@ -44,8 +44,7 @@ public class Ocr4allAppOcrdMsaApplication {
 
 		logger.info("started ocr4all-app-ocrd-msa: port " + configurationService.getServerPort() + ", active profiles '"
 				+ configurationService.getActiveProfilesCSV() + "', projects folder '"
-				+ configurationService.getProjectsFolder() + "'.");
-
+				+ context.getEnvironment().getProperty("ocr4all.projects.folder") + "'.");
 	}
 
 }
