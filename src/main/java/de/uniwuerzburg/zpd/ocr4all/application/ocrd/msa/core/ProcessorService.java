@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import de.uniwuerzburg.zpd.ocr4all.application.communication.msa.job.ThreadPool;
+import de.uniwuerzburg.zpd.ocr4all.application.msa.configuration.ConfigurationService;
 import de.uniwuerzburg.zpd.ocr4all.application.msa.job.SchedulerService;
 import de.uniwuerzburg.zpd.ocr4all.application.spi.util.SystemProcess;
 
@@ -65,22 +66,23 @@ public class ProcessorService {
 	/**
 	 * Creates a processor service.
 	 * 
-	 * @param projectsFolder           The ocr4all projects folder.
 	 * @param jsonDescriptionParameter The json description parameter.
+	 * @param inputParameter           The input folder parameter.
+	 * @param outputParameter          The output folder parameter.
 	 * @param timeConsuming            The processors to be run on the
 	 *                                 time-consuming thread pool.
+	 * @param configurationService     The configuration service.
 	 * @param schedulerService         The scheduler service.
 	 * @since 17
 	 */
-	public ProcessorService(@Value("${ocr4all.projects.folder}") String projectsFolder,
-			@Value("${ocr4all.ocrd.parameter.description.json}") String jsonDescriptionParameter, 
+	public ProcessorService(@Value("${ocr4all.ocrd.parameter.description.json}") String jsonDescriptionParameter,
 			@Value("${ocr4all.ocrd.parameter.folder.input}") String inputParameter,
 			@Value("${ocr4all.ocrd.parameter.folder.output}") String outputParameter,
 			@Value("#{'${ocr4all.ocrd.processors.time-consuming}'.split(',')}") List<String> timeConsuming,
-			SchedulerService schedulerService) {
+			ConfigurationService configurationService, SchedulerService schedulerService) {
 		super();
 
-		this.projectsFolder = Paths.get(projectsFolder).normalize();
+		this.projectsFolder = configurationService.getProjectsFolder();
 
 		this.jsonDescriptionParameter = jsonDescriptionParameter;
 		this.inputParameter = inputParameter;
@@ -129,8 +131,8 @@ public class ProcessorService {
 	 * @throws IllegalArgumentException Throws on folder troubles.
 	 * @since 17
 	 */
-	public OCRDJob start(String key, String folder, String processor, String input, String output, List<String> arguments)
-			throws IllegalArgumentException {
+	public OCRDJob start(String key, String folder, String processor, String input, String output,
+			List<String> arguments) throws IllegalArgumentException {
 		if (folder == null || folder.isBlank())
 			throw new IllegalArgumentException("the folder parameter is not defined");
 
@@ -144,14 +146,15 @@ public class ProcessorService {
 
 		if (!path.startsWith(projectsFolder) || !Files.isDirectory(path))
 			throw new IllegalArgumentException("the folder is not a valid directory");
-		
+
 		arguments.addAll(0, Arrays.asList(inputParameter, input, outputParameter, output));
 
-		OCRDJob job = new OCRDJob(timeConsuming.contains(processor.trim()) ? ThreadPool.timeConsuming
-				: ThreadPool.standard, key, new SystemProcess(path, processor), arguments);
+		OCRDJob job = new OCRDJob(
+				timeConsuming.contains(processor.trim()) ? ThreadPool.timeConsuming : ThreadPool.standard, key,
+				new SystemProcess(path, processor), arguments);
 		schedulerService.start(job);
 
 		return job;
-	}	
+	}
 
 }

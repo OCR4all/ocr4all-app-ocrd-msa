@@ -43,7 +43,8 @@ public class Ocr4allAppOcrdMsaApplication {
 		ConfigurationService configurationService = context.getBean(ConfigurationService.class);
 
 		logger.info("started ocr4all-app-ocrd-msa: port " + configurationService.getServerPort() + ", active profiles '"
-				+ configurationService.getActiveProfilesCSV() + "'.");
+				+ configurationService.getActiveProfilesCSV() + "', projects folder '"
+				+ configurationService.getProjectsFolder() + "'.");
 
 	}
 

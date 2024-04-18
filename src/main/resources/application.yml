@@ -1,9 +1,28 @@
-server.port: 9091
+#
+# OCR4all app
+# Application Properties
+#
+# Author: Herbert Baier (herbert.baier@uni-wuerzburg.de)
+# Date:   06.03.2024
+#
 
+#
+# spring configuration
+#
 spring.profiles.active:
-  - development
+  - logging-debug
   - msa-api
+  - development
 
+#
+# server configuration
+#
+server:
+  port: 8080
+
+#
+# ocr4all configuration
+#
 ocr4all:
   message:
     end-point: /event
@@ -13,7 +32,7 @@ ocr4all:
   thread.pool.size: 
     standard: 6
     time-consuming: 3
-  projects.folder: /home/ocr4all/projects
+  projects.folder: ${user.home}/ocr4all/workspace/projects
   ocrd:
     parameter:
       description.json: -J
@@ -22,30 +41,45 @@ ocr4all:
         output: -O
     processors.time-consuming: ocrd-calamari-recognize,ocrd-tesserocr-recognize
 
+#
+# logging configuration: console / level info
+#
+logging:
+  file:
+    path:
+    name:
+  level:
+    root: INFO
+
 ---
 spring:
-    config.activate.on-profile: docker
-
-server.port: 8080
+    config.activate.on-profile: logging-file
 
 logging:
   file:
     path: /var/log/ocr4all
-    name: ocrd-msa.log
-  level:
-    root: INFO
+    name: ocrd.log
+
+---
+spring:
+    config.activate.on-profile: logging-debug
+
+server.error.include-stacktrace: always
+  
+logging.level:
+  "[de.uniwuerzburg.zpd.ocr4all.application.ocrd.msa]": DEBUG
+
+---
+spring:
+    config.activate.on-profile: docker
+
+ocr4all.projects.folder: /srv/ocr4all/projects
 
 ---
 spring:
     config.activate.on-profile: development
 
 server:
-  error.include-stacktrace: always
+  port: 9091
 
-logging:
-  file:
-    path:
-    name:
-  level:
-    "[de.uniwuerzburg.zpd.ocr4all.application.ocrd.msa]": DEBUG
-
+ocr4all.projects.folder: ${user.home}/ocr4all/dev/workspace/projects
