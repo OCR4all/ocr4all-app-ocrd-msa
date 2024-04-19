@@ -3,7 +3,7 @@
 #
 # Assembles a Docker image to run ocr4all msa api for ocrd on a ocrd/all container.
 #
-# Author: Herbert Baier (baier@itbaier.de)
+# Author: Herbert Baier (herbert.baier@uni-wuerzburg.de)
 # Date: 16.04.2024
 #
 ARG TAG
