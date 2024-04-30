@@ -9,20 +9,20 @@
 ARG TAG
 FROM ocrd/all:${TAG}
 
-WORKDIR application
-
 #
 # install required packages
 #
 RUN apt-get -y update
 
-# java version
+# install java
 ARG JAVA_VERSION
 RUN apt-get install -y openjdk-${JAVA_VERSION}-jdk openjdk-${JAVA_VERSION}-jre
 
 #
 # install application
 #
+WORKDIR /application
+
 ARG APP_VERSION
 COPY target/ocr4all-app-ocrd-msa-${APP_VERSION}.jar app.jar
 
