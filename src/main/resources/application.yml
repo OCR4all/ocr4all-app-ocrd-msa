@@ -1,0 +1,85 @@
+#
+# OCR4all app
+# Application Properties
+#
+# Author: Herbert Baier (herbert.baier@uni-wuerzburg.de)
+# Date:   06.03.2024
+#
+
+#
+# spring configuration
+#
+spring.profiles.active:
+  - logging-debug
+  - msa-api
+  - development
+
+#
+# server configuration
+#
+server:
+  port: 8080
+
+#
+# ocr4all configuration
+#
+ocr4all:
+  message:
+    end-point: /event
+    topic:
+      prefix: /topic
+      destination: /spi
+  thread.pool.size: 
+    standard: 6
+    time-consuming: 3
+  projects.folder: ${user.home}/ocr4all/workspace/projects
+  ocrd:
+    parameter:
+      description.json: -J
+      folder:
+        input: -I
+        output: -O
+    processors.time-consuming: ocrd-calamari-recognize,ocrd-tesserocr-recognize
+
+#
+# logging configuration: console / level info
+#
+logging:
+  file:
+    path:
+    name:
+  level:
+    root: INFO
+
+---
+spring:
+    config.activate.on-profile: logging-file
+
+logging:
+  file:
+    path: /var/log/ocr4all
+    name: ocrd.log
+
+---
+spring:
+    config.activate.on-profile: logging-debug
+
+server.error.include-stacktrace: always
+  
+logging.level:
+  "[de.uniwuerzburg.zpd.ocr4all.application.ocrd.msa]": DEBUG
+
+---
+spring:
+    config.activate.on-profile: docker
+
+ocr4all.projects.folder: /srv/ocr4all/projects
+
+---
+spring:
+    config.activate.on-profile: development
+
+server:
+  port: 9091
+
+ocr4all.projects.folder: ${user.home}/ocr4all/dev/workspace/projects
