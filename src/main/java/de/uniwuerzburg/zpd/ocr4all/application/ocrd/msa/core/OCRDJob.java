@@ -34,6 +34,11 @@ public class OCRDJob extends Job implements SystemJob {
 	private final List<String> arguments;
 
 	/**
+	 * True if add the process environment to the standard output.
+	 */
+	private final boolean isAddEnvironmentStandardOutput;
+
+	/**
 	 * The current message.
 	 */
 	private String message;
@@ -41,17 +46,21 @@ public class OCRDJob extends Job implements SystemJob {
 	/**
 	 * Creates an OCR-D job.
 	 *
-	 * @param threadPool The thread pool.
-	 * @param key        The key.
-	 * @param process    The process.
-	 * @param arguments  The arguments.
+	 * @param threadPool                     The thread pool.
+	 * @param key                            The key.
+	 * @param process                        The process.
+	 * @param isAddEnvironmentStandardOutput True if add the process environment to
+	 *                                       the standard output.
+	 * @param arguments                      The arguments.
 	 * @since 17
 	 */
-	public OCRDJob(ThreadPool threadPool, String key, SystemProcess process, List<String> arguments) {
+	public OCRDJob(ThreadPool threadPool, String key, SystemProcess process, boolean isAddEnvironmentStandardOutput,
+			List<String> arguments) {
 		super(threadPool, key,
 				"Process: '" + process.getCommand() + "'" + (arguments == null ? "" : " with arguments " + arguments));
 
 		this.process = process;
+		this.isAddEnvironmentStandardOutput = isAddEnvironmentStandardOutput;
 		this.arguments = arguments;
 
 		message = null;
@@ -75,7 +84,7 @@ public class OCRDJob extends Job implements SystemJob {
 	@Override
 	protected State execute() {
 		try {
-			process.execute(arguments);
+			process.execute(false, isAddEnvironmentStandardOutput, arguments);
 
 			State state = process.getExitValue() == 0 ? State.completed : State.interrupted;
 

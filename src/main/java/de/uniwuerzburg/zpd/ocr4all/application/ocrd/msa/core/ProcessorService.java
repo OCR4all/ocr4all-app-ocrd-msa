@@ -54,6 +54,21 @@ public class ProcessorService {
 	private final String outputParameter;
 
 	/**
+	 * The log level parameter.
+	 */
+	private final String logLevelParameter;
+
+	/**
+	 * The logging level.
+	 */
+	private final String loggingLevel;
+
+	/**
+	 * True if add the process environment to the standard output.
+	 */
+	private final boolean isAddEnvironmentStandardOutput;
+
+	/**
 	 * The processors to be run on the time-consuming thread pool.
 	 */
 	private final Set<String> timeConsuming = new HashSet<>();;
@@ -70,6 +85,8 @@ public class ProcessorService {
 	 * @param jsonDescriptionParameter The json description parameter.
 	 * @param inputParameter           The input folder parameter.
 	 * @param outputParameter          The output folder parameter.
+	 * @param logLevelParameter        The log level parameter.
+	 * @param loggingLevel             The logging level.
 	 * @param timeConsuming            The processors to be run on the
 	 *                                 time-consuming thread pool.
 	 * @param configurationService     The configuration service.
@@ -80,6 +97,8 @@ public class ProcessorService {
 			@Value("${ocr4all.ocrd.parameter.description.json}") String jsonDescriptionParameter,
 			@Value("${ocr4all.ocrd.parameter.folder.input}") String inputParameter,
 			@Value("${ocr4all.ocrd.parameter.folder.output}") String outputParameter,
+			@Value("${ocr4all.ocrd.parameter.log.level}") String logLevelParameter,
+			@Value("${ocr4all.ocrd.logging.level}") String loggingLevel,
 			@Value("#{'${ocr4all.ocrd.processors.time-consuming}'.split(',')}") List<String> timeConsuming,
 			ConfigurationService configurationService, SchedulerService schedulerService) {
 		super();
@@ -89,8 +108,13 @@ public class ProcessorService {
 		this.jsonDescriptionParameter = jsonDescriptionParameter;
 		this.inputParameter = inputParameter;
 		this.outputParameter = outputParameter;
+		this.logLevelParameter = logLevelParameter;
+
+		this.loggingLevel = loggingLevel;
 
 		this.schedulerService = schedulerService;
+
+		isAddEnvironmentStandardOutput = "DEBUG".equals(loggingLevel) || "TRACE".equals(loggingLevel);
 
 		for (String processor : timeConsuming)
 			if (processor != null && !processor.isBlank())
@@ -149,11 +173,12 @@ public class ProcessorService {
 		if (!path.startsWith(projectsFolder) || !Files.isDirectory(path))
 			throw new IllegalArgumentException("the folder is not a valid directory");
 
-		arguments.addAll(0, Arrays.asList(inputParameter, input, outputParameter, output));
+		arguments.addAll(0,
+				Arrays.asList(logLevelParameter, loggingLevel, inputParameter, input, outputParameter, output));
 
 		OCRDJob job = new OCRDJob(
 				timeConsuming.contains(processor.trim()) ? ThreadPool.timeConsuming : ThreadPool.standard, key,
-				new SystemProcess(path, processor), arguments);
+				new SystemProcess(path, processor), isAddEnvironmentStandardOutput, arguments);
 		schedulerService.start(job);
 
 		return job;
