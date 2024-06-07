@@ -29,6 +29,21 @@ public class OCRDJob extends Job implements SystemJob {
 	private final SystemProcess process;
 
 	/**
+	 * True if add the process environment to the standard output.
+	 */
+	private final boolean isAddEnvironmentStandardOutput;
+
+	/**
+	 * True if discards the standard output.
+	 */
+	private final boolean isDiscardOutput;
+
+	/**
+	 * True if discards the standard error.
+	 */
+	private final boolean isDiscardError;
+
+	/**
 	 * The arguments. Null if no arguments are required.
 	 */
 	private final List<String> arguments;
@@ -41,17 +56,25 @@ public class OCRDJob extends Job implements SystemJob {
 	/**
 	 * Creates an OCR-D job.
 	 *
-	 * @param threadPool The thread pool.
-	 * @param key        The key.
-	 * @param process    The process.
-	 * @param arguments  The arguments.
+	 * @param threadPool                     The thread pool.
+	 * @param key                            The key.
+	 * @param process                        The process.
+	 * @param isAddEnvironmentStandardOutput True if add the process environment to
+	 *                                       the standard output.
+	 * @param isDiscardOutput                True if discards the standard output.
+	 * @param isDiscardError                 True if discards the standard error.
+	 * @param arguments                      The arguments.
 	 * @since 17
 	 */
-	public OCRDJob(ThreadPool threadPool, String key, SystemProcess process, List<String> arguments) {
+	public OCRDJob(ThreadPool threadPool, String key, SystemProcess process, boolean isAddEnvironmentStandardOutput,
+			boolean isDiscardOutput, boolean isDiscardError, List<String> arguments) {
 		super(threadPool, key,
 				"Process: '" + process.getCommand() + "'" + (arguments == null ? "" : " with arguments " + arguments));
 
 		this.process = process;
+		this.isAddEnvironmentStandardOutput = isAddEnvironmentStandardOutput;
+		this.isDiscardOutput = isDiscardOutput;
+		this.isDiscardError = isDiscardError;
 		this.arguments = arguments;
 
 		message = null;
@@ -75,7 +98,7 @@ public class OCRDJob extends Job implements SystemJob {
 	@Override
 	protected State execute() {
 		try {
-			process.execute(arguments);
+			process.execute(false, isAddEnvironmentStandardOutput, isDiscardOutput, isDiscardError, arguments);
 
 			State state = process.getExitValue() == 0 ? State.completed : State.interrupted;
 

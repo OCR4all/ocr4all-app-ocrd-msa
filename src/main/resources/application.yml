@@ -11,6 +11,7 @@
 #
 spring.profiles.active:
   - logging-debug
+  - ocrd-logging-discard
   - msa-api
   - development
 
@@ -39,6 +40,12 @@ ocr4all:
       folder:
         input: -I
         output: -O
+      log.level: -l
+    logging:
+      level: INFO
+      discard:
+        output: false
+        error: false
     processors.time-consuming: ocrd-calamari-recognize,ocrd-tesserocr-recognize
 
 #
@@ -68,6 +75,35 @@ server.error.include-stacktrace: always
   
 logging.level:
   "[de.uniwuerzburg.zpd.ocr4all.application.ocrd.msa]": DEBUG
+
+---
+spring:
+    config.activate.on-profile: ocrd-logging-discard
+
+
+ocr4all.ocrd.logging.discard:
+  output: true
+  error: true
+
+---
+spring:
+    config.activate.on-profile: ocrd-logging-off
+
+
+ocr4all.ocrd.logging:
+  level: OFF
+
+---
+spring:
+    config.activate.on-profile: ocrd-logging-debug
+
+ocr4all.ocrd.logging.level: DEBUG
+
+---
+spring:
+    config.activate.on-profile: ocrd-logging-trace
+
+ocr4all.ocrd.logging.level: TRACE
 
 ---
 spring:

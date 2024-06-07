@@ -34,6 +34,11 @@ import de.uniwuerzburg.zpd.ocr4all.application.spi.util.SystemProcess;
 @Service
 public class ProcessorService {
 	/**
+	 * OCR-D default log level.
+	 */
+	private static final String defaultLogLevelORCD = "INFO";
+
+	/**
 	 * The ocr4all projects folder.
 	 */
 	private final Path projectsFolder;
@@ -54,9 +59,34 @@ public class ProcessorService {
 	private final String outputParameter;
 
 	/**
+	 * The log level parameter.
+	 */
+	private final String logLevelParameter;
+
+	/**
+	 * The logging level.
+	 */
+	private final String loggingLevel;
+
+	/**
+	 * True if add the process environment to the standard output.
+	 */
+	private final boolean isAddEnvironmentStandardOutput;
+
+	/**
+	 * True if discards the standard output.
+	 */
+	private final boolean isDiscardOutput;
+
+	/**
+	 * True if discards the standard error.
+	 */
+	private final boolean isDiscardError;
+
+	/**
 	 * The processors to be run on the time-consuming thread pool.
 	 */
-	private final Set<String> timeConsuming = new HashSet<>();;
+	private final Set<String> timeConsuming = new HashSet<>();
 
 	/**
 	 * The scheduler service.
@@ -70,6 +100,10 @@ public class ProcessorService {
 	 * @param jsonDescriptionParameter The json description parameter.
 	 * @param inputParameter           The input folder parameter.
 	 * @param outputParameter          The output folder parameter.
+	 * @param logLevelParameter        The log level parameter.
+	 * @param loggingLevel             The logging level.
+	 * @param isDiscardOutput          True if discards the standard output.
+	 * @param isDiscardError           True if discards the standard error.
 	 * @param timeConsuming            The processors to be run on the
 	 *                                 time-consuming thread pool.
 	 * @param configurationService     The configuration service.
@@ -80,6 +114,10 @@ public class ProcessorService {
 			@Value("${ocr4all.ocrd.parameter.description.json}") String jsonDescriptionParameter,
 			@Value("${ocr4all.ocrd.parameter.folder.input}") String inputParameter,
 			@Value("${ocr4all.ocrd.parameter.folder.output}") String outputParameter,
+			@Value("${ocr4all.ocrd.parameter.log.level}") String logLevelParameter,
+			@Value("${ocr4all.ocrd.logging.level}") String loggingLevel,
+			@Value("${ocr4all.ocrd.logging.discard.output}") boolean isDiscardOutput,
+			@Value("${ocr4all.ocrd.logging.discard.error}") boolean isDiscardError,
 			@Value("#{'${ocr4all.ocrd.processors.time-consuming}'.split(',')}") List<String> timeConsuming,
 			ConfigurationService configurationService, SchedulerService schedulerService) {
 		super();
@@ -89,8 +127,17 @@ public class ProcessorService {
 		this.jsonDescriptionParameter = jsonDescriptionParameter;
 		this.inputParameter = inputParameter;
 		this.outputParameter = outputParameter;
+		this.logLevelParameter = logLevelParameter;
+
+		loggingLevel = loggingLevel.trim();
+		this.loggingLevel = loggingLevel.isEmpty() || defaultLogLevelORCD.equals(loggingLevel) ? null : loggingLevel;
+
+		this.isDiscardOutput = isDiscardOutput;
+		this.isDiscardError = isDiscardError;
 
 		this.schedulerService = schedulerService;
+
+		isAddEnvironmentStandardOutput = "DEBUG".equals(loggingLevel) || "TRACE".equals(loggingLevel);
 
 		for (String processor : timeConsuming)
 			if (processor != null && !processor.isBlank())
@@ -151,9 +198,14 @@ public class ProcessorService {
 
 		arguments.addAll(0, Arrays.asList(inputParameter, input, outputParameter, output));
 
+		// OCR-D bug: log level parameter is not working!
+		if (loggingLevel != null)
+			arguments.addAll(0, Arrays.asList(logLevelParameter, loggingLevel));
+
 		OCRDJob job = new OCRDJob(
 				timeConsuming.contains(processor.trim()) ? ThreadPool.timeConsuming : ThreadPool.standard, key,
-				new SystemProcess(path, processor), arguments);
+				new SystemProcess(path, processor), isAddEnvironmentStandardOutput, isDiscardOutput, isDiscardError,
+				arguments);
 		schedulerService.start(job);
 
 		return job;
