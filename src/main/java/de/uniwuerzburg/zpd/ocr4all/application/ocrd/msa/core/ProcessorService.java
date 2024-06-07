@@ -34,6 +34,11 @@ import de.uniwuerzburg.zpd.ocr4all.application.spi.util.SystemProcess;
 @Service
 public class ProcessorService {
 	/**
+	 * OCR-D default log level.
+	 */
+	private static final String defaultLogLevelORCD = "INFO";
+
+	/**
 	 * The ocr4all projects folder.
 	 */
 	private final Path projectsFolder;
@@ -69,9 +74,19 @@ public class ProcessorService {
 	private final boolean isAddEnvironmentStandardOutput;
 
 	/**
+	 * True if discards the standard output.
+	 */
+	private final boolean isDiscardOutput;
+
+	/**
+	 * True if discards the standard error.
+	 */
+	private final boolean isDiscardError;
+
+	/**
 	 * The processors to be run on the time-consuming thread pool.
 	 */
-	private final Set<String> timeConsuming = new HashSet<>();;
+	private final Set<String> timeConsuming = new HashSet<>();
 
 	/**
 	 * The scheduler service.
@@ -87,6 +102,8 @@ public class ProcessorService {
 	 * @param outputParameter          The output folder parameter.
 	 * @param logLevelParameter        The log level parameter.
 	 * @param loggingLevel             The logging level.
+	 * @param isDiscardOutput          True if discards the standard output.
+	 * @param isDiscardError           True if discards the standard error.
 	 * @param timeConsuming            The processors to be run on the
 	 *                                 time-consuming thread pool.
 	 * @param configurationService     The configuration service.
@@ -99,6 +116,8 @@ public class ProcessorService {
 			@Value("${ocr4all.ocrd.parameter.folder.output}") String outputParameter,
 			@Value("${ocr4all.ocrd.parameter.log.level}") String logLevelParameter,
 			@Value("${ocr4all.ocrd.logging.level}") String loggingLevel,
+			@Value("${ocr4all.ocrd.logging.discard.output}") boolean isDiscardOutput,
+			@Value("${ocr4all.ocrd.logging.discard.error}") boolean isDiscardError,
 			@Value("#{'${ocr4all.ocrd.processors.time-consuming}'.split(',')}") List<String> timeConsuming,
 			ConfigurationService configurationService, SchedulerService schedulerService) {
 		super();
@@ -110,7 +129,11 @@ public class ProcessorService {
 		this.outputParameter = outputParameter;
 		this.logLevelParameter = logLevelParameter;
 
-		this.loggingLevel = loggingLevel;
+		loggingLevel = loggingLevel.trim();
+		this.loggingLevel = loggingLevel.isEmpty() || defaultLogLevelORCD.equals(loggingLevel) ? null : loggingLevel;
+
+		this.isDiscardOutput = isDiscardOutput;
+		this.isDiscardError = isDiscardError;
 
 		this.schedulerService = schedulerService;
 
@@ -173,12 +196,16 @@ public class ProcessorService {
 		if (!path.startsWith(projectsFolder) || !Files.isDirectory(path))
 			throw new IllegalArgumentException("the folder is not a valid directory");
 
-		arguments.addAll(0,
-				Arrays.asList(logLevelParameter, loggingLevel, inputParameter, input, outputParameter, output));
+		arguments.addAll(0, Arrays.asList(inputParameter, input, outputParameter, output));
+
+		// OCR-D bug: log level parameter is not working!
+		if (loggingLevel != null)
+			arguments.addAll(0, Arrays.asList(logLevelParameter, loggingLevel));
 
 		OCRDJob job = new OCRDJob(
 				timeConsuming.contains(processor.trim()) ? ThreadPool.timeConsuming : ThreadPool.standard, key,
-				new SystemProcess(path, processor), isAddEnvironmentStandardOutput, arguments);
+				new SystemProcess(path, processor), isAddEnvironmentStandardOutput, isDiscardOutput, isDiscardError,
+				arguments);
 		schedulerService.start(job);
 
 		return job;

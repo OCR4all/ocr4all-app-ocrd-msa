@@ -29,14 +29,24 @@ public class OCRDJob extends Job implements SystemJob {
 	private final SystemProcess process;
 
 	/**
-	 * The arguments. Null if no arguments are required.
-	 */
-	private final List<String> arguments;
-
-	/**
 	 * True if add the process environment to the standard output.
 	 */
 	private final boolean isAddEnvironmentStandardOutput;
+
+	/**
+	 * True if discards the standard output.
+	 */
+	private final boolean isDiscardOutput;
+
+	/**
+	 * True if discards the standard error.
+	 */
+	private final boolean isDiscardError;
+
+	/**
+	 * The arguments. Null if no arguments are required.
+	 */
+	private final List<String> arguments;
 
 	/**
 	 * The current message.
@@ -51,16 +61,20 @@ public class OCRDJob extends Job implements SystemJob {
 	 * @param process                        The process.
 	 * @param isAddEnvironmentStandardOutput True if add the process environment to
 	 *                                       the standard output.
+	 * @param isDiscardOutput                True if discards the standard output.
+	 * @param isDiscardError                 True if discards the standard error.
 	 * @param arguments                      The arguments.
 	 * @since 17
 	 */
 	public OCRDJob(ThreadPool threadPool, String key, SystemProcess process, boolean isAddEnvironmentStandardOutput,
-			List<String> arguments) {
+			boolean isDiscardOutput, boolean isDiscardError, List<String> arguments) {
 		super(threadPool, key,
 				"Process: '" + process.getCommand() + "'" + (arguments == null ? "" : " with arguments " + arguments));
 
 		this.process = process;
 		this.isAddEnvironmentStandardOutput = isAddEnvironmentStandardOutput;
+		this.isDiscardOutput = isDiscardOutput;
+		this.isDiscardError = isDiscardError;
 		this.arguments = arguments;
 
 		message = null;
@@ -84,7 +98,7 @@ public class OCRDJob extends Job implements SystemJob {
 	@Override
 	protected State execute() {
 		try {
-			process.execute(false, isAddEnvironmentStandardOutput, arguments);
+			process.execute(false, isAddEnvironmentStandardOutput, isDiscardOutput, isDiscardError, arguments);
 
 			State state = process.getExitValue() == 0 ? State.completed : State.interrupted;
 
