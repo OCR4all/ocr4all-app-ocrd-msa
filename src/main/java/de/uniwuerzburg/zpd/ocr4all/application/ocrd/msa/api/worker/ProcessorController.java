@@ -21,9 +21,9 @@ import de.uniwuerzburg.zpd.ocr4all.application.communication.msa.api.domain.JobR
 import de.uniwuerzburg.zpd.ocr4all.application.communication.msa.api.domain.SystemJobResponse;
 import de.uniwuerzburg.zpd.ocr4all.application.msa.api.util.ApiUtils;
 import de.uniwuerzburg.zpd.ocr4all.application.msa.job.SchedulerService;
+import de.uniwuerzburg.zpd.ocr4all.application.msa.job.SystemProcessJob;
 import de.uniwuerzburg.zpd.ocr4all.application.ocrd.communication.api.DescriptionResponse;
 import de.uniwuerzburg.zpd.ocr4all.application.ocrd.communication.api.ProcessRequest;
-import de.uniwuerzburg.zpd.ocr4all.application.ocrd.msa.core.OCRDJob;
 import de.uniwuerzburg.zpd.ocr4all.application.ocrd.msa.core.ProcessorService;
 import jakarta.validation.Valid;
 
@@ -106,7 +106,7 @@ public class ProcessorController extends CoreApiController {
 					+ request.getFolder() + "', input '" + request.getInput() + "', output '" + request.getOutput()
 					+ "', arguments '" + request.getArguments() + "'.");
 
-			final OCRDJob job = service.start(request.getKey(), request.getFolder(), request.getProcessor(),
+			final SystemProcessJob job = service.start(request.getKey(), request.getFolder(), request.getProcessor(),
 					request.getInput(), request.getOutput(), request.getArguments());
 
 			logger.debug(request.getProcessor() + ": running job " + job.getId() + ", key " + job.getKey() + ".");
@@ -133,7 +133,7 @@ public class ProcessorController extends CoreApiController {
 	@GetMapping(jobRequestMapping + idPathVariable)
 	public ResponseEntity<SystemJobResponse> getSystemJob(@PathVariable int id) {
 		try {
-			OCRDJob job = (OCRDJob) schedulerService.getJob(id);
+			SystemProcessJob job = (SystemProcessJob) schedulerService.getJob(id);
 
 			if (job == null)
 				throw new ResponseStatusException(HttpStatus.BAD_REQUEST);

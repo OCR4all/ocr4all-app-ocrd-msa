@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import de.uniwuerzburg.zpd.ocr4all.application.communication.msa.job.ThreadPool;
 import de.uniwuerzburg.zpd.ocr4all.application.msa.configuration.ConfigurationService;
 import de.uniwuerzburg.zpd.ocr4all.application.msa.job.SchedulerService;
+import de.uniwuerzburg.zpd.ocr4all.application.msa.job.SystemProcessJob;
 import de.uniwuerzburg.zpd.ocr4all.application.spi.util.SystemProcess;
 
 /**
@@ -180,7 +181,7 @@ public class ProcessorService {
 	 * @throws IllegalArgumentException Throws on folder troubles.
 	 * @since 17
 	 */
-	public OCRDJob start(String key, String folder, String processor, String input, String output,
+	public SystemProcessJob start(String key, String folder, String processor, String input, String output,
 			List<String> arguments) throws IllegalArgumentException {
 		if (folder == null || folder.isBlank())
 			throw new IllegalArgumentException("the folder parameter is not defined");
@@ -202,7 +203,7 @@ public class ProcessorService {
 		if (loggingLevel != null)
 			arguments.addAll(0, Arrays.asList(logLevelParameter, loggingLevel));
 
-		OCRDJob job = new OCRDJob(
+		SystemProcessJob job = new SystemProcessJob(
 				timeConsuming.contains(processor.trim()) ? ThreadPool.timeConsuming : ThreadPool.standard, key,
 				new SystemProcess(path, processor), isAddEnvironmentStandardOutput, isDiscardOutput, isDiscardError,
 				arguments);
