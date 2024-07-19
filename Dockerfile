@@ -10,6 +10,11 @@ ARG TAG
 FROM ocrd/all:${TAG}
 
 #
+# remove ocrd temporary files
+#
+RUN rm -rf /tmp/ocrd_*
+
+#
 # install required packages
 #
 RUN apt-get -y update
